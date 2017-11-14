@@ -2,17 +2,17 @@ package at.ac.tuwien.ac.heuoptws15;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import sun.security.provider.certpath.AdjacencyList;
 
+
+
 public class KPMPInstance {
 	private int K;
 	private int numVertices;
+	private int numEdges = 0;
 	private List<List<Integer>> adjacencyList = new ArrayList<>();
 	private boolean[][] adjacencyMatrix;
 	
@@ -58,13 +58,20 @@ public class KPMPInstance {
 			List<Integer> al = inst.adjacencyList.get(i);
 			inst.adjacencyList.set(i, al.stream().distinct().collect(Collectors.toList()));
 		}
-		
+
+        for (int vertex = 0; vertex < inst.getNumVertices(); ++vertex) {
+            for (int nextVertex : inst.adjacencyList.get(vertex)) {
+                if (vertex <= nextVertex)
+                 inst.numEdges += 1;
+            }
+        }
+
 		return inst;
 	}
 
-	public int getK() {
-		return K;
-	}
+	public int getK() { return K; }
+
+    public int getNumEdges() { return numEdges; }
 
 	public int getNumVertices() {
 		return numVertices;

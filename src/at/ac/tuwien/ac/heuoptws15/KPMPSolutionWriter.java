@@ -1,10 +1,16 @@
 package at.ac.tuwien.ac.heuoptws15;
 
+import KPMP.utilities.*;
+
+import sun.jvm.hotspot.debugger.Page;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,22 +27,20 @@ public class KPMPSolutionWriter {
 	}
 	
 	private int K = 0;
+	private int curK = 0;
 	private List<Integer> spineOrder = new LinkedList<>();
-	private List<PageEntry> edgePartition = new LinkedList<>();
+	private LinkedList<PageEntry> edgePartition = new LinkedList<>();
 	
-	public KPMPSolutionWriter() {
+	public KPMPSolutionWriter(int K) {
+	    this.K = K;
 	}
 
-	public void addPage(List<Integer> vertexes) {
-	    int lastVertex = -1;
-	    for (int vertex: vertexes) {
-	        if (lastVertex != -1) {
-	            addEdgeOnPage(lastVertex, vertex, K);
-            }
-            lastVertex = vertex;
+	public void addPage(List<Edge> edges) {
+	    for (Edge edge: edges) {
+            addEdgeOnPage(edge.left, edge.right, curK);
         }
-        K += 1;
-    }
+        curK = (curK + 1) % K;
+	}
 	
 	public void setSpineOrder(List<Integer> spineOrder) {
 		this.spineOrder = spineOrder;
@@ -51,7 +55,7 @@ public class KPMPSolutionWriter {
 			write(w);
 		}
 	}
-	
+
 	public void write(Writer w) throws IOException {
 		w.write(Integer.toString(spineOrder.size()));
 		w.write('\n');
@@ -62,6 +66,15 @@ public class KPMPSolutionWriter {
 			w.write(Integer.toString(i));
 			w.write('\n');
 		}
+
+//        Collections.sort(edgePartition, new Comparator<PageEntry>() {
+//            @Override
+//            public int compare(PageEntry e1, PageEntry e2) {
+//                if(e1.a == e2.a)
+//                    return e1.b - e2.b;
+//                return e1.a - e2.a;
+//            }
+//        });
 		
 		for(PageEntry e: edgePartition) {
 			w.write(Integer.toString(e.a));
