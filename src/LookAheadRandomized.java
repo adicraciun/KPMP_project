@@ -4,7 +4,7 @@ import at.ac.tuwien.ac.heuoptws15.KPMPInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LookAhead {
+public class LookAheadRandomized {
 
     private boolean[][] alreadyUsed;
     private int curEdges = 0;
@@ -30,12 +30,18 @@ public class LookAhead {
         alreadyUsed[Math.min(vertexA, vertexB)][Math.max(vertexA, vertexB)] = true;
     }
 
+    private int randomWithRange(int min, int max) {
+        int range = (max - min) + 1;
+        return (int)(Math.random() * range) + min;
+    }
+
     private Edge getBestEdge(KPMPInstance graph, List<Edge> edges) {
         int best = (1 << 30) - 1;
         int numberOfTrials = 0;
         Edge bestEdge = null;
 
-        for (Edge currentEdge : graph.getEdgeList()) {
+        while (numberOfTrials < maxNumberOfTrials || bestEdge == null) {
+            Edge currentEdge = graph.getEdgeList().get(randomWithRange(0, graph.getEdgeList().size() - 1));
             if (isEdgeUsed(currentEdge.left, currentEdge.right)) continue;
             int nrIntersections = nrEdgeIntersect(currentEdge, edges);
             if (nrIntersections < best) {
@@ -43,13 +49,13 @@ public class LookAhead {
                 bestEdge = currentEdge;
             }
             numberOfTrials++;
-            if (numberOfTrials > maxNumberOfTrials && bestEdge != null)
-                return bestEdge;
         }
+
         return bestEdge;
     }
 
-    LookAhead(KPMPInstance graph, ArrayList<ArrayList<Edge>> result) {
+    // result will be mutated so please be carefull about this
+    LookAheadRandomized(KPMPInstance graph, ArrayList<ArrayList<Edge>> result, int maxNumberOfTrials) {
         this.alreadyUsed = new boolean[graph.getNumVertices()][graph.getNumVertices()];
         this.adjacencyList = graph.getAdjacencyList();
         this.result = result;
@@ -58,11 +64,11 @@ public class LookAhead {
     }
 
     // result will be mutated so please be carefull about this
-    LookAhead(KPMPInstance graph, boolean[][] alreadyUsed, int curEdges, ArrayList<ArrayList<Edge>> result) {
+    LookAheadRandomized(KPMPInstance graph, boolean[][] alreadyUsed, int curEdges, ArrayList<ArrayList<Edge>> result, int maxNumberOfTrials ) {
         this.alreadyUsed = new boolean[graph.getNumVertices()][graph.getNumVertices()];
         for(int i = 0; i < alreadyUsed.length; i++)
-          for(int j = 0; j < alreadyUsed[i].length; j++)
-              this.alreadyUsed[i][j] = alreadyUsed[i][j];
+            for(int j = 0; j < alreadyUsed[i].length; j++)
+                this.alreadyUsed[i][j] = alreadyUsed[i][j];
         this.curEdges = curEdges;
         this.adjacencyList = graph.getAdjacencyList();
         this.result = result;
@@ -75,7 +81,7 @@ public class LookAhead {
         int curK = 0;
         int cost = 0;
 
-        System.out.println(curEdges + " " + graph.getNumEdges());
+        //System.out.println(curEdges + " " + graph.getNumEdges());
 
         while (curEdges < graph.getNumEdges() ) {
             Edge edge;
@@ -83,7 +89,7 @@ public class LookAhead {
             ArrayList<Edge> curResult = result.get(curK);
 
             while (curEdges < graph.getNumEdges() && (curResult.size() < graph.getNumEdges() / graph.getK() ||
-                                                      curK == graph.getK() - 1) ) {
+                    curK == graph.getK() - 1) ) {
                 edge = getBestEdge(graph, curResult);
                 if (edge == null)
                     break;
@@ -96,7 +102,7 @@ public class LookAhead {
 
             curK++;
 
-            System.out.println(curEdges + " " + graph.getNumEdges() + " " + graph.getK());
+            //System.out.println(curEdges + " " + graph.getNumEdges() + " " + graph.getK());
         }
         return cost;
     }

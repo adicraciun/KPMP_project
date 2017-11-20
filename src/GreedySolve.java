@@ -1,3 +1,7 @@
+import KPMP.neighborhoods.BasicNeighborhood;
+import KPMP.neighborhoods.SpineNeighborhood;
+import KPMP.utilities.Solution;
+import KPMP.utilities.SolutionUtilities;
 import at.ac.tuwien.ac.heuoptws15.KPMPInstance;
 import at.ac.tuwien.ac.heuoptws15.KPMPSolutionWriter;
 
@@ -12,7 +16,7 @@ public class GreedySolve {
         KPMPInstance graph;
 
         try {
-            graph = KPMPInstance.readInstance("/Users/adicraciun/Desktop/Algoritmica/instances/instance-11.txt");
+            graph = KPMPInstance.readInstance("/Users/adicraciun/Desktop/Algoritmica/instances/instance-07.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Couldn't read!");
             return;
@@ -49,22 +53,38 @@ public class GreedySolve {
         for (int i = 0; i < graph.getK(); ++i) {
             result.add(new ArrayList<Edge>());
         }
-        LookAhead solver = new LookAhead(graph, result);
+
+        LookAheadRandomized solver = new LookAheadRandomized(graph, result, 100);
         solver.lookAhead();
 
-        KPMPSolutionWriter solution = new KPMPSolutionWriter(graph.getK());
-
-        for (int i = 0; i < graph.getK(); ++i)
-            solution.addPage(result.get(i));
         List<Integer> spineOrder = new ArrayList<Integer>();
 
         for (int i = 0; i < graph.getNumVertices(); ++i)
             spineOrder.add(i);
 
-        solution.setSpineOrder(spineOrder);
+        Solution solution = new Solution(result, spineOrder);
+        System.out.println(SolutionUtilities.getFitness(solution));
+        //solution.swapOrder(0, 5);
+        System.out.println(SolutionUtilities.cloneSolution(solution).getPages());
+
+        VND vnd = new VND(solution, new BasicNeighborhood(solution), new SpineNeighborhood(solution));
+        solution = vnd.doVND();
+
+        System.out.println(SolutionUtilities.getFitness(solution));
+
+        // ----
+        KPMPSolutionWriter writer = new KPMPSolutionWriter(graph.getK());
+
+        for (int i = 0; i < graph.getK(); ++i)
+            writer.addPage(solution.getPage(i));
+
+        spineOrder = solution.getSpineOrder();
+        System.out.println(spineOrder);
+
+        writer.setSpineOrder(spineOrder);
 
         try {
-            solution.write("/Users/adicraciun/Desktop/Algoritmica/instances/instance-11-sol.txt");
+            writer.write("/Users/adicraciun/Desktop/Algoritmica/instances/instance-07-sol.txt");
         } catch (Exception e) {
             System.out.println("Couldn't write the file");
         }
@@ -92,7 +112,7 @@ public class GreedySolve {
             int bestCost = 1 << 29;
             int bestPage = 0;
             int nrTestedEdges = 0;
-            for (int vertex = 0; vertex < graph.getNumVertices() && nrTestedEdges < 100; ++vertex) {
+            for (int vertex = 0; vertex < graph.getNumVertices() /* && nrTestedEdges < 100*/; ++vertex) {
                 for (int nextVertex : adjacencyList.get(vertex)) {
                     if (vertex > nextVertex) continue;
                     if (isEdgeUsed(vertex, nextVertex)) continue;
@@ -107,10 +127,9 @@ public class GreedySolve {
                                 alternativeResult.get(j).add(new Edge(edge));
                             }
                         }
-
                         alternativeResult.get(pageNumber).add(new Edge(vertex, nextVertex));
-                        LookAhead cost_computer = new LookAhead(graph, alreadyUsed, curEdges + 1, alternativeResult);
-                                                System.out.println("TRY");
+                        LookAheadRandomized cost_computer = new LookAheadRandomized(graph, alreadyUsed, curEdges + 1, alternativeResult, 1000);
+                                              //  System.out.println("TRY");
                         int curCost = cost_computer.lookAhead();
                         curCost += nrEdgeIntersect(new Edge(vertex, nextVertex), result.get(pageNumber));
                         if (curCost < bestCost) {
@@ -120,7 +139,7 @@ public class GreedySolve {
                         }
                     }
                     changeStateEdge(vertex, nextVertex);
-                    System.out.println("TRY");
+                    //System.out.println("TRY");
 
                 }
             }
