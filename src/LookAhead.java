@@ -77,9 +77,6 @@ public class LookAhead {
 
             System.out.println(curEdges + " " + graph.getNumEdges() + " " + numberOfAllowedIntersections);
 
-
-
-
             ++curK;
             if (curK == graph.getK()) {
                 numberOfAllowedIntersections += 1;

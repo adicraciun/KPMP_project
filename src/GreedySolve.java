@@ -111,6 +111,7 @@ public class GreedySolve {
             solution.addPage(result.get(i));
         List<Integer> spineOrder = new ArrayList<Integer>();
 
+
         for (int i = 0; i < graph.getNumVertices(); ++i)
             spineOrder.add(i);
 
