@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import KPMP.utilities.Edge;
 import sun.security.provider.certpath.AdjacencyList;
 
 
@@ -15,6 +16,7 @@ public class KPMPInstance {
 	private int numEdges = 0;
 	private List<List<Integer>> adjacencyList = new ArrayList<>();
 	private boolean[][] adjacencyMatrix;
+	private List<Edge> edgeList = new ArrayList<Edge>();
 	
 	private KPMPInstance() {
 		
@@ -61,8 +63,10 @@ public class KPMPInstance {
 
         for (int vertex = 0; vertex < inst.getNumVertices(); ++vertex) {
             for (int nextVertex : inst.adjacencyList.get(vertex)) {
-                if (vertex <= nextVertex)
-                 inst.numEdges += 1;
+                if (vertex <= nextVertex) {
+                    inst.numEdges += 1;
+                    inst.edgeList.add(new Edge(vertex, nextVertex));
+                }
             }
         }
 
@@ -84,4 +88,6 @@ public class KPMPInstance {
 	public final boolean[][] getAdjacencyMatrix() {
 		return adjacencyMatrix;
 	}
+
+	public List<Edge> getEdgeList() { return edgeList; }
 }

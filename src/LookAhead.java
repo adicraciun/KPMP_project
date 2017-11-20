@@ -29,19 +29,32 @@ public class LookAhead {
         alreadyUsed[Math.min(vertexA, vertexB)][Math.max(vertexA, vertexB)] = true;
     }
 
-    private Edge getBestEdge(KPMPInstance graph, List<Edge> edges, int numberOfAllowedIntersections) {
-        for (int vertex = 0; vertex < graph.getNumVertices(); ++vertex) {
-            for (int nextVertex : adjacencyList.get(vertex)) {
-                if (isEdgeUsed(vertex, nextVertex)) continue;
-                if (nextVertex < vertex) continue;
-
-                if (nrEdgeIntersect(new Edge(vertex, nextVertex), edges) <= numberOfAllowedIntersections)
-                    return new Edge(vertex, nextVertex);
+    private Edge getBestEdge(KPMPInstance graph, List<Edge> edges) {
+        int best = (1 << 30) - 1;
+        int numberOfTrials = 0;
+        Edge bestEdge = null;
+        for (Edge currentEdge : graph.getEdgeList()) {
+            if (isEdgeUsed(currentEdge.left, currentEdge.right)) continue;
+            int nrIntersections = nrEdgeIntersect(currentEdge, edges);
+            if (nrIntersections < best) {
+                best = nrIntersections;
+                bestEdge = currentEdge;
             }
+            numberOfTrials++;
+            if (numberOfTrials > 1000 && bestEdge != null)
+                return bestEdge;
         }
-        return null;
+        return bestEdge;
     }
 
+    LookAhead(KPMPInstance graph, ArrayList<ArrayList<Edge>> result) {
+        this.alreadyUsed = new boolean[graph.getNumVertices()][graph.getNumVertices()];
+        this.adjacencyList = graph.getAdjacencyList();
+        this.result = result;
+        this.graph = graph;
+    }
+
+    // result will be mutated so please be carefull about this
     LookAhead(KPMPInstance graph, boolean[][] alreadyUsed, int curEdges, ArrayList<ArrayList<Edge>> result) {
         this.alreadyUsed = new boolean[graph.getNumVertices()][graph.getNumVertices()];
         for(int i = 0; i < alreadyUsed.length; i++)
@@ -65,23 +78,21 @@ public class LookAhead {
 
             ArrayList<Edge> curResult = result.get(curK);
 
-            while (true) {
-                edge = getBestEdge(graph, curResult, numberOfAllowedIntersections);
+            while (curEdges < graph.getNumEdges() && (curResult.size() < graph.getNumEdges() / graph.getK() ||
+                                                      curK == graph.getK() - 1) ) {
+                edge = getBestEdge(graph, curResult);
                 if (edge == null)
                     break;
                 curResult.add(edge);
                 curEdges += 1;
                 markUsedEdge(edge.left, edge.right);
-                cost += numberOfAllowedIntersections;
+                cost += nrEdgeIntersect(edge, curResult);
+                //System.out.println("ANOTHER EDGE" + curEdges + " " + graph.getNumEdges() / graph.getK());
             }
 
-            System.out.println(curEdges + " " + graph.getNumEdges() + " " + numberOfAllowedIntersections);
+            curK++;
 
-            ++curK;
-            if (curK == graph.getK()) {
-                numberOfAllowedIntersections += 1;
-                curK = 0;
-            }
+            System.out.println(curEdges + " " + graph.getNumEdges() + " " + graph.getK());
         }
         return cost;
     }

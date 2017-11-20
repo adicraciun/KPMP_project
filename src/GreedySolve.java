@@ -20,7 +20,7 @@ public class GreedySolve {
 
         GreedySolve solver = new GreedySolve();
 
-        solver.solve(graph);
+        solver.solve_simple(graph);
     }
 
     private List<List<Integer>> adjacencyList;
@@ -44,8 +44,34 @@ public class GreedySolve {
         return nrIntersections;
     }
 
+    public void solve_simple(KPMPInstance graph) {
+        ArrayList<ArrayList<Edge>> result = new ArrayList<ArrayList<Edge>>(graph.getK());
+        for (int i = 0; i < graph.getK(); ++i) {
+            result.add(new ArrayList<Edge>());
+        }
+        LookAhead solver = new LookAhead(graph, result);
+        solver.lookAhead();
 
-    public void solve(KPMPInstance graph) {
+        KPMPSolutionWriter solution = new KPMPSolutionWriter(graph.getK());
+
+        for (int i = 0; i < graph.getK(); ++i)
+            solution.addPage(result.get(i));
+        List<Integer> spineOrder = new ArrayList<Integer>();
+
+        for (int i = 0; i < graph.getNumVertices(); ++i)
+            spineOrder.add(i);
+
+        solution.setSpineOrder(spineOrder);
+
+        try {
+            solution.write("/Users/adicraciun/Desktop/Algoritmica/instances/instance-11-sol.txt");
+        } catch (Exception e) {
+            System.out.println("Couldn't write the file");
+        }
+    }
+
+
+    public void solve_branch_bound(KPMPInstance graph) {
         KPMPSolutionWriter solution = new KPMPSolutionWriter(graph.getK());
 
         alreadyUsed = new boolean[graph.getNumVertices()][graph.getNumVertices()];
